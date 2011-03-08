@@ -102,7 +102,7 @@ def execute_test(cwd, test, out, logfname, interp, test_driver,
     args = map(str, args)
     interp0 = args[0]
     if (_win32 and not os.path.isabs(interp0) and
-        ('\\' in interp0 or '/' in interp0)):    
+        ('\\' in interp0 or '/' in interp0)):
         args[0] = os.path.join(str(cwd), interp0)
 
     if do_dry_run:
@@ -139,7 +139,7 @@ def interpret_exitcode(exitcode, test, logdata=""):
             elif exitcode == RUNFAILED:
                 msg = "Failed to run interp"
             elif exitcode == EXECUTEFAILED:
-                msg = "Failed with exception in execute-test"                
+                msg = "Failed with exception in execute-test"
             else:
                 msg = "Killed by %s." % getsignalname(-exitcode)
             extralog = "! %s\n %s\n" % (test, msg)
@@ -163,7 +163,7 @@ def worker(num, n, run_param, testdirs, result_queue):
             result_queue.put(None) # done
             return
         result_queue.put(('start', test))
-        basename = py.path.local(test).purebasename        
+        basename = py.path.local(test).purebasename
         logfname = sessdir.join("%d-%s-pytest-log" % (num, basename))
         one_output = sessdir.join("%d-%s-output" % (num, basename))
         num += n
@@ -181,7 +181,7 @@ def worker(num, n, run_param, testdirs, result_queue):
             traceback.print_exc()
             exitcode = EXECUTEFAILED
 
-        if one_output.check(file=1):            
+        if one_output.check(file=1):
             output = one_output.read(READ_MODE)
         else:
             output = ""
@@ -238,7 +238,7 @@ def execute_tests(run_param, testdirs, logfile, out):
         if res[0] == 'start':
             started += 1
             out.write("++ starting %s [%d started in total]\n" % (res[1],
-                                                                  started)) 
+                                                                  started))
             continue
         
         testname, somefailed, logdata, output = res[1:]
@@ -261,7 +261,12 @@ def execute_tests(run_param, testdirs, logfile, out):
 class RunParam(object):
     dry_run = False
     interp = [os.path.abspath(sys.executable)]
-    test_driver = [os.path.abspath(os.path.join('py', 'bin', 'py.test'))]
+    pytestpath = os.path.abspath(os.path.join('py', 'bin', 'py.test'))
+    if not os.path.exists(pytestpath):
+        pytestpath = os.path.abspath(os.path.join('pytest.py'))
+        assert os.path.exists(pytestpath)
+    test_driver = [pytestpath]
+
     parallel_runs = 1
     timeout = None
     cherrypick = None
